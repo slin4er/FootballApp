@@ -4,6 +4,7 @@ require('dotenv').config()
 const port = process.env.PORT
 const app = express()
 const players = require('./routes/player')
+const teams = require('./routes/team')
 const connectDB = require('./db/connect')
 const wrongRoute = require('./middlewares/pageNotFound')
 const errorHandler = require('./middlewares/errorHandler')
@@ -13,6 +14,7 @@ app.use(express.json())
 
 //routers
 app.use('/api/v1/players', players)
+app.use('/api/v1/teams', teams)
 app.use(errorHandler)
 app.use(wrongRoute)
 

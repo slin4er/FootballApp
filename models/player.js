@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
+const {Schema} = require("mongoose");
 
-const playerSchema = new mongoose.Schema({
+const playerSchema = new Schema({
     name: {
         type: String,
         trim: true,
@@ -13,19 +14,19 @@ const playerSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
-        required: true
+        default: 18
     },
     sex: {
         type: String,
-        required: true
+        default: 'male'
     },
     leg: {
         type: String,
-        required: true
+        default: 'right'
     },
     position: {
         type: String,
-        required: true
+        default: 'FW'
     },
     goals: {
         type: Number,
@@ -53,14 +54,21 @@ const playerSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        unique: true
     },
     phone: {
         type: String,
         required: true
+    },
+    team: {
+        type: Schema.Types.ObjectId,
+    },
+    token: {
+        type: String
     }
 })
 
-const Player = mongoose.model('players', playerSchema)
+const Player = mongoose.model('player', playerSchema)
 
 module.exports = Player
