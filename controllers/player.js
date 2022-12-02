@@ -1,7 +1,6 @@
 const Player = require('../models/player')
 const bcrypt = require('bcrypt')
 require('dotenv').config()
-const jwt = require('jsonwebtoken')
 
 const getAllPlayers = async (req, res) => {
     const players = await Player.find()
@@ -11,7 +10,7 @@ const getAllPlayers = async (req, res) => {
 
 const getPlayer = async (req, res) => {
     const {id: playerID} = req.params
-    const player = await Player.findById(playerID)
+    const player = await Player.findById(playerID).populate('team').exec()
     if(!player) {throw new Error('Not Found')}
     res.status(200).json({player})
 }
@@ -23,11 +22,7 @@ const createPlayer = async (req, res) => {
     if(oldPlayer.length > 0) {throw new Error('This email was already taken')}
     const hashedPassword = await bcrypt.hash(password, 10)
     const player = await Player.create({...req.body, password: hashedPassword})
-    const token = await jwt.sign(
-        {player_id: player._id},
-        process.env.TOKEN_KEY,
-        {expiresIn: '24h'}
-    )
+    const token = await player.signToken(player)
     player.token = token
     await player.save()
     res.status(201).json({player})
@@ -39,10 +34,7 @@ const loginPlayer = async (req, res) => {
     const player = await Player.findOne({email})
     if(!player) {throw new Error('Not Found')}
     if(!await bcrypt.compare(password, player.password)) {throw new Error('Something went wrong, try again!')}
-    const token = await jwt.sign(
-        {player_id: player._id},
-        process.env.TOKEN_KEY
-    )
+    const token = await player.signToken(player)
     player.token = token
     await player.save()
     res.status(201).json({player})

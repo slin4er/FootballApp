@@ -24,8 +24,13 @@ const teamSchema = new Schema({
     }],
     owner: {
         type: Schema.Types.ObjectId,
-        required: true
-    }
+        required: true,
+        ref: 'player'
+    },
+    players: [{
+        type: Schema.Types.ObjectId,
+        ref: 'player'
+    }]
 })
 
 const Team = mongoose.model('team', teamSchema)

@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 const {Schema} = require("mongoose");
+const jwt = require("jsonwebtoken");
+require('dotenv').config()
 
 const playerSchema = new Schema({
     name: {
@@ -49,24 +51,38 @@ const playerSchema = new Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        select:false
     },
     email: {
         type: String,
         required: true,
         trim: true,
-        unique: true
+        unique: true,
+        select: false
     },
     phone: {
         type: String,
-        required: true
+        required: true,
+        select: false
     },
     team: {
         type: Schema.Types.ObjectId,
+        ref:'team'
     },
     token: {
-        type: String
+        type: String,
+        select:false
     }
+})
+
+playerSchema.method('signToken', async (player) => {
+    const token = await jwt.sign(
+        {player_id: player._id},
+        process.env.TOKEN_KEY,
+        {expiresIn: '24h'}
+    )
+    return token
 })
 
 const Player = mongoose.model('player', playerSchema)
