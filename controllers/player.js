@@ -1,4 +1,5 @@
 const Player = require('../models/player')
+const Team = require('../models/team')
 const bcrypt = require('bcrypt')
 require('dotenv').config()
 
@@ -25,7 +26,7 @@ const createPlayer = async (req, res) => {
     const token = await player.signToken(player)
     player.token = token
     await player.save()
-    res.status(201).json({player})
+    res.status(201).json({player, token})
 }
 
 const loginPlayer = async (req, res) => {
@@ -37,7 +38,7 @@ const loginPlayer = async (req, res) => {
     const token = await player.signToken(player)
     player.token = token
     await player.save()
-    res.status(201).json({player})
+    res.status(200).send({player, token})
 }
 
 const updatePlayer = async (req, res) => {
@@ -61,6 +62,34 @@ const deletePLayer = async (req, res) => {
     res.status(200).json({msg: "Player was successfully deleted!"})
 }
 
+const sendInvitationToAnotherPlayer = async (req, res) => {
+    const {id: player_id} = req.params
+    const player = await Player.findById(player_id)
+    if(!player) {throw new Error('Not Found')}
+    player.notifications.push(req.player.team)
+    await player.save()
+    res.status(200).json('Invitation was sent successfully')
+}
+
+const acceptInvitation = async (req, res) => {
+    const {id: team_id} = req.params
+    const team = await Team.findById(team_id)
+    if(!team) {throw new Error('Not Found')}
+    team.players.push(req.player._id)
+    req.player.team = team._id
+    req.player.notifications = req.player.notifications.filter(notification => notification !== team_id)
+    await team.save()
+    await req.player.save()
+    res.status(200).json('You joined the team')
+}
+
+const declineInvitation = async (req, res) => {
+    const {id: team_id} = req.params
+    req.player.notifications = req.player.notifications.filter(notification => notification !== team_id)
+    await req.player.save()
+    res.status(200).send('Declined invitation')
+}
+
 module.exports = {
     getAllPlayers,
     getPlayer,
@@ -68,5 +97,8 @@ module.exports = {
     loginPlayer,
     updatePlayer,
     deletePLayer,
-    playerLogout
+    playerLogout,
+    sendInvitationToAnotherPlayer,
+    acceptInvitation,
+    declineInvitation
 }

@@ -52,19 +52,16 @@ const playerSchema = new Schema({
     password: {
         type: String,
         required: true,
-        select:false
     },
     email: {
         type: String,
         required: true,
         trim: true,
         unique: true,
-        select: false
     },
     phone: {
         type: String,
         required: true,
-        select: false
     },
     team: {
         type: Schema.Types.ObjectId,
@@ -72,8 +69,10 @@ const playerSchema = new Schema({
     },
     token: {
         type: String,
-        select:false
-    }
+    },
+    notifications: [{
+        type: String
+    }]
 })
 
 playerSchema.method('signToken', async (player) => {
@@ -84,6 +83,14 @@ playerSchema.method('signToken', async (player) => {
     )
     return token
 })
+
+playerSchema.methods.toJSON = function () {
+    const obj = this.toObject()
+    delete obj.password
+    delete obj.email
+    delete obj.token
+    return obj
+}
 
 const Player = mongoose.model('player', playerSchema)
 
