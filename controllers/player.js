@@ -24,7 +24,7 @@ const createPlayer = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10)
     const player = await Player.create({...req.body, password: hashedPassword})
     const token = await jwt.sign(
-        {player_id: player._id, email},
+        {player_id: player._id},
         process.env.TOKEN_KEY,
         {expiresIn: '24h'}
     )
@@ -40,9 +40,8 @@ const loginPlayer = async (req, res) => {
     if(!player) {throw new Error('Not Found')}
     if(!await bcrypt.compare(password, player.password)) {throw new Error('Something went wrong, try again!')}
     const token = await jwt.sign(
-        {player_id: player._id, email},
-        process.env.TOKEN_KEY,
-        {expiresIn: "24h"}
+        {player_id: player._id},
+        process.env.TOKEN_KEY
     )
     player.token = token
     await player.save()
@@ -54,6 +53,13 @@ const updatePlayer = async (req, res) => {
     const player = await Player.findByIdAndUpdate(playerID, req.body, {new: true})
     if(!player) throw new Error('Not Found')
     res.status(201).json({player})
+}
+
+const playerLogout = async (req, res) => {
+    if(!req.player) {throw new Error('Something went wrong, try again!')}
+    req.player.token = undefined
+    await req.player.save()
+    res.status(200).json('You have logged out!')
 }
 
 const deletePLayer = async (req, res) => {
@@ -69,5 +75,6 @@ module.exports = {
     createPlayer,
     loginPlayer,
     updatePlayer,
-    deletePLayer
+    deletePLayer,
+    playerLogout
 }
