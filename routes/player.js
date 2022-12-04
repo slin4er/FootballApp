@@ -8,15 +8,15 @@ const {
     getAllPlayers,
     updatePlayer,
     loginPlayer,
-    playerLogout, sendInvitationToAnotherPlayer, acceptInvitation, declineInvitation
+    playerLogout,
+    sendInvitationToPlayer, getProfile,
 } = require('../controllers/player')
 
 router.route('/:id').get(auth, getPlayer).patch(auth, updatePlayer).delete(auth, deletePLayer)
+router.route('/profile/:id').get(auth, getProfile)
 router.route('/').get(auth, getAllPlayers).post(createPlayer)
 router.route('/login').post(loginPlayer)
 router.route('/logout').post(auth, playerLogout)
-router.route('/invite/:id').post(auth, sendInvitationToAnotherPlayer)
-router.route('/accept/:id').post(auth, acceptInvitation)
-router.route('/decline/:id').post(auth, declineInvitation)
+router.route('/invite/:id').post(auth, sendInvitationToPlayer)
 
 module.exports = router

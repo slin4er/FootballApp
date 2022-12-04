@@ -71,7 +71,8 @@ const playerSchema = new Schema({
         type: String,
     },
     notifications: [{
-        type: String
+        type: Schema.Types.ObjectId,
+        ref: 'notification'
     }]
 })
 
@@ -84,11 +85,21 @@ playerSchema.method('signToken', async (player) => {
     return token
 })
 
+playerSchema.method('sendNotification', async(player_id, notification) => {
+    const player = await Player.findById(player_id)
+    if(!player) {return false}
+    console.log(notification)
+    player.notifications = player.notifications.concat(notification)
+    await player.save()
+    return true
+})
+
 playerSchema.methods.toJSON = function () {
     const obj = this.toObject()
     delete obj.password
     delete obj.email
     delete obj.token
+    delete obj.notifications
     return obj
 }
 
