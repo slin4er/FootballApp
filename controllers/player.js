@@ -64,15 +64,50 @@ const getProfile = async (req, res) => {
 
 const sendInvitationToPlayer = async (req, res) => {
     const {id: player_id} = req.params
+    const team = await Team.findById(req.player.team)
     const notification = await Notification.create({
         title: 'Invite to team',
-        type: 'Join Team'
+        type: 'Join Team',
+        team: team._id
     })
     const playerToInvite = await Player.findById(player_id)
     if(!playerToInvite) {throw new Error('Not Found')}
     playerToInvite.notifications = playerToInvite.notifications.concat(notification._id)
     await playerToInvite.save()
     res.status(200).send('Your invitation was sent successfully!')
+}
+
+const acceptInvitation = async(req, res) => {
+    const {id: notification_id} = req.params
+    const invitation = await Notification.findById(notification_id)
+    if(!invitation) {throw new Error('Not Found')}
+    req.player.team = invitation.team
+    const team = await Team.findById(invitation.team)
+    if(!team) {throw new Error('Not Found')}
+    const notification = await Notification.create({
+        title: 'New Player',
+        type: 'Plain Text',
+        text: `${req.player.name} ${req.player.surname} joined your team! Now you are ${team.players.length + 1}`
+    })
+    team.players.map(async (player_id) => {
+        const player = await Player.findById(player_id)
+        player.notifications = player.notifications.concat(notification._id)
+        await player.save()
+    })
+    team.players = team.players.concat(req.player._id)
+    req.player.notifications = req.player.notifications.filter((notificationID) => notificationID !== notification_id)
+    await Notification.findByIdAndDelete(notification_id)
+    await req.player.save()
+    await team.save()
+    res.status(200).json(`You joined ${team.name}`)
+}
+
+const deleteNotification = async (req, res) => {
+    const {id: notification_id} = req.params
+    req.player.notifications = req.player.notifications.filter((notificationID) => notificationID !== notification_id)
+    await Notification.findByIdAndDelete(notification_id)
+    await req.player.save()
+    res.status(200).send('Deleted!')
 }
 
 // PLAYER'S ROUTES
@@ -100,5 +135,7 @@ module.exports = {
     updatePlayer,
     sendInvitationToPlayer,
     deletePLayer,
-    playerLogout
+    playerLogout,
+    acceptInvitation,
+    deleteNotification
 }

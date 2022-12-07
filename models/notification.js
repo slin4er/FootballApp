@@ -15,6 +15,12 @@ const notificationSchema = new Schema({
     player: {
         type: Schema.Types.ObjectId,
         ref: 'player'
+    },
+    team: {
+        type: Schema.Types.ObjectId || String,
+    },
+    text: {
+        type: String
     }
 })
 
