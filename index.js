@@ -3,6 +3,7 @@ require('express-async-errors')
 require('dotenv').config()
 const port = process.env.PORT
 const app = express()
+const bodyParser = require('body-parser')
 const players = require('./routes/player')
 const teams = require('./routes/team')
 const connectDB = require('./db/connect')
@@ -11,6 +12,8 @@ const errorHandler = require('./middlewares/errorHandler')
 
 //middleware
 app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.static('./public'));
 
 //routers
 app.use('/api/v1/players', players)
